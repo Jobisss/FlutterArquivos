@@ -1,10 +1,7 @@
-import 'dart:convert';
 import 'package:app_lista_tarefas/modelo/objeto_data_hora.dart';
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 import '../widgets/itens_lista.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
+import 'package:app_lista_tarefas/repositorio/repositorio.dart';
 
 
 class Pagina_lista extends StatefulWidget {
@@ -14,26 +11,13 @@ class Pagina_lista extends StatefulWidget {
 
 class _Pagina_listaState extends State<Pagina_lista> {
   final TextEditingController mensagensControlador = TextEditingController();
+  final Repositorio repositorio = Repositorio();
+  
+
 
   List<Data_Hora> Mensagens = [];
 
-  void salvarTarefasEmJSON() async {
-
-    final diretorio = await getApplicationDocumentsDirectory(); // Obtenha o diretório de documentos do aplicativo
-
-    final pastaMinhaTarefas = Directory('${diretorio.path}/jsonarquivo/');
-    pastaMinhaTarefas.createSync(recursive: true);
-    final arquivo = File('${pastaMinhaTarefas.path}/tarefas.json');
-    final listaTarefas = Mensagens.map((tarefa) => tarefa.toJson()).toList();
-    final listaTarefasJson = jsonEncode(listaTarefas);
-
-    try {
-  await arquivo.writeAsString(listaTarefasJson);
-  print('Arquivo JSON salvo com sucesso.');
-} catch (e) {
-  print('Erro ao salvar o arquivo JSON: $e');
-}
-  }
+  
 
 
   void limparTudo(){
@@ -91,11 +75,14 @@ class _Pagina_listaState extends State<Pagina_lista> {
                   ElevatedButton(
                     onPressed: () {
                       String qualquercoisa = mensagensControlador.text;
+                      
 
                       setState(() {
                         Data_Hora item_data_hora = Data_Hora(
-                            titulo: qualquercoisa, data_hora: DateTime.now());
+                            titulo: qualquercoisa,
+                            data_hora: DateTime.now());
                         Mensagens.add(item_data_hora);
+                        repositorio.salvarLista(Mensagens);
                       });
 
                       mensagensControlador.clear();
@@ -120,8 +107,11 @@ class _Pagina_listaState extends State<Pagina_lista> {
                     for (Data_Hora mensagem_controle in Mensagens)
                       TudoItemLista(
                         mensagem_data_hora: mensagem_controle,
-                        item_deletar_tarefas: deletar_tarefas,                       
+                        item_deletar_tarefas: deletar_tarefas,     
+     
                       ),
+                     
+                      
                   ],
                 ),
               ),
@@ -133,13 +123,7 @@ class _Pagina_listaState extends State<Pagina_lista> {
                   Expanded(
                     child: Text("Você possui ${Mensagens.length} tarefas pendentes"),
                   ),
-                  ElevatedButton(
-                    onPressed: salvarTarefasEmJSON,
-                    style: ElevatedButton.styleFrom(
-                      primary: Color.fromARGB(255, 57, 42, 221),
-                      padding: EdgeInsets.all(20)
-                    ), 
-                    child: Text("Salvar"),),
+
                   SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: mostrarConfirmacao,
